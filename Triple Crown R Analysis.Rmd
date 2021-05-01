@@ -1,0 +1,387 @@
+##Triple Crown R Analysis
+##Helen Zhang
+##251031759
+
+#separating the three races
+kentucky= TripleCrownRaces_2005_2019_copy[1:302,]
+preakness = TripleCrownRaces_2005_2019_copy[465:628,]
+belmont = TripleCrownRaces_2005_2019_copy[302:465,]
+
+##KENTUCKY ANALYSIS
+
+#kentucky model fit
+ken_fit = lm (final_place ~ PP+Odds+Win+Place+Show, data = kentucky)
+
+#checking model assumptions
+par(mfrow=c(1,2))
+plot(fitted(ken_fit), resid(ken_fit), col = "grey", pch = 20,
+xlab = "Fitted", ylab = "Residual",cex=2,
+main = "Residual plot")
+
+abline(h = 0, col = "darkorange", lwd = 2)
+qqnorm(resid(ken_fit), col = "grey",pch=20,cex=2)
+qqline(resid(ken_fit), col = "dodgerblue", lwd = 2)
+
+bptest(ken_fit)
+##[1]data:  ken_fit
+##[2]BP = 7.7885, df = 6, p-value = 0.254
+
+shapiro.test(resid(ken_fit))
+##[1]data:  resid(ken_fit)
+##[2]W = 0.98346, p-value = 0.001482
+
+influ_idx = which(cooks.distance(ken_fit) > 4 / length(cooks.distance(ken_fit)))
+influ_idx
+##[1]2  81 243 264 
+##[2]2  81 243 264
+#4 influencial points
+
+sum(abs(rstandard(ken_fit)[influ_idx]) > 2)
+##[1] 2
+#2 outliers
+
+#removing influential to see if the fit is better
+kentucky2 = kentucky[-influ_idx,]
+ken_fit2 = lm (final_place~., data = kentucky2)
+par(mfrow=c(1,2))
+plot(fitted(ken_fit2), resid(ken_fit2), col = "grey", pch = 20,
+xlab = "Fitted", ylab = "Residual",cex=2,
+main = "Residual plot")
+abline(h = 0, col = "darkorange", lwd = 2)
+qqnorm(resid(ken_fit2), col = "grey",pch=20,cex=2)
+qqline(resid(ken_fit2), col = "dodgerblue", lwd = 2)
+
+bptest(ken_fit2)
+##[1]data:  ken_fit2
+##[2]BP = 13.829, df = 6, p-value = 0.0316
+
+shapiro.test(resid(ken_fit2))
+##[1]data:  resid(ken_fit2)
+##[2]W = 0.98226, p-value = 0.001162
+
+#using the Box-Cox method to determine the best transformation on the response variable y
+
+library(MASS)
+boxcox(ken_fit,lambda = seq(0.3, 0.7, by = 0.05))
+
+lambda = 0.52
+ken_boxcox = lm(((final_place^(lambda)-1)/(lambda))~., data = kentucky)
+par(mfrow=c(1,2))
+plot(fitted(ken_boxcox), resid(ken_boxcox), col = "grey", pch = 20,
+xlab = "Fitted", ylab = "Residuals", main = "Residual Plot")
+abline(h = 0, col = "darkorange", lwd = 2)
+qqnorm(resid(ken_boxcox), col = "grey", pch = 20,cex = 2)
+qqline(resid(ken_boxcox), col = "dodgerblue", lwd = 2)
+
+bptest(ken_boxcox)
+##[1]data:  ken_boxcox
+##[2]BP = 4.5178, df = 6, p-value = 0.607
+
+shapiro.test(resid(ken_boxcox))
+##[1]data:  resid(ken_boxcox)
+##[2]W = 0.97816, p-value = 0.0001826
+
+#obtain the polynomial model
+ken_poly = lm(final_place~PP + Odds + Win + Place + Show + I(PP^2) + + I (Odds^2) + I(Win^2) + I(Place^2) + I(Show^2),data = kentucky)
+par(mfrow=c(1,2))
+plot(fitted(ken_poly), resid(ken_poly), col = "grey", pch = 20,
+xlab = "Fitted", ylab = "Residual",cex=2,
+main = "Residual plot")
+abline(h = 0, col = "darkorange", lwd = 2)
+qqnorm(resid(ken_poly), col = "grey",pch=20,cex=2)
+qqline(resid(ken_poly), col = "dodgerblue", lwd = 2)
+
+bptest(ken_poly)
+##[1]data:  ken_poly
+##[2]BP = 30.616, df = 10, p-value = 0.0006789
+
+shapiro.test(resid(ken_poly))
+##[1]data:  resid(ken_poly)
+##[2]W = 0.98464, p-value = 0.003087
+
+
+##PREAKNESS ANALYSIS
+
+#preak model fit
+preak_fit = lm (final_place~ PP+Odds+Win+Place+Show, data = preakness)
+
+#checking model assumptions
+par(mfrow=c(1,2))
+plot(fitted(preak_fit), resid(preak_fit), col = "grey", pch = 20,
+xlab = "Fitted", ylab = "Residual",cex=2,
+main = "Residual plot")
+
+abline(h = 0, col = "darkorange", lwd = 2)
+qqnorm(resid(preak_fit), col = "grey",pch=20,cex=2)
+qqline(resid(preak_fit), col = "dodgerblue", lwd = 2)
+
+bptest(preak_fit)
+##[1]data:  preak_fit
+##[2]BP = 16.614, df = 5, p-value = 0.005294
+
+shapiro.test(resid(preak_fit))
+##[1]data:  resid(preak_fit)
+##[2]W = 0.97708, p-value = 0.008294
+
+influ_idx = which(cooks.distance(preak_fit) > 4 / length(cooks.distance(preak_fit)))
+influ_idx
+##[1]14  20  48  95 127 135 152 
+##[2]14  20  48  95 127 135 152 
+#7 influencial points
+
+sum(abs(rstandard(preak_fit)[influ_idx]) > 2)
+##[1] 3
+#3 outliers
+
+#removing influential to see if the fit is better
+preak2 = preakness[-influ_idx,]
+preak_fit2 = lm (final_place~ PP+Odds+Win+Place+Show, data = preak2)
+par(mfrow=c(1,2))
+plot(fitted(preak_fit2), resid(preak_fit2), col = "grey", pch = 20,
+xlab = "Fitted", ylab = "Residual",cex=2,
+main = "Residual plot")
+abline(h = 0, col = "darkorange", lwd = 2)
+qqnorm(resid(preak_fit2), col = "grey",pch=20,cex=2)
+qqline(resid(preak_fit2), col = "dodgerblue", lwd = 2)
+
+bptest(preak_fit2)
+##[1]data:  preak_fit2
+##[2]BP = 11.246, df = 5, p-value = 0.04671
+
+shapiro.test(resid(preak_fit2))
+##[1]data:  resid(preak_fit2)
+##[2]W = 0.96897, p-value = 0.001382
+
+#using the Box-Cox method to determine the best transformation on the response variable y
+
+library(MASS)
+boxcox(preak_fit,lambda = seq(0.3, 0.7, by = 0.05))
+
+lambda = 0.44
+preak_boxcox = lm(((final_place^(lambda)-1)/(lambda))~ PP+Odds+Win+Place+Show, data = preakness)
+par(mfrow=c(1,2))
+plot(fitted(preak_boxcox), resid(preak_boxcox), col = "grey", pch = 20,
+xlab = "Fitted", ylab = "Residuals", main = "Residual Plot")
+abline(h = 0, col = "darkorange", lwd = 2)
+qqnorm(resid(preak_boxcox), col = "grey", pch = 20,cex = 2)
+qqline(resid(preak_boxcox), col = "dodgerblue", lwd = 2)
+
+bptest(preak_boxcox)
+##[1]data:  preak_boxcox
+##[2]BP = 8.5248, df = 5, p-value = 0.1296
+
+shapiro.test(resid(preak_boxcox))
+##[1]data:  resid(preak_boxcox)
+##[2]W = 0.98994, p-value = 0.3011
+
+#obtain the polynomial model
+preak_poly = lm(final_place~PP + Odds + Win + Place + Show + I(PP^2) + + I (Odds^2) + I(Win^2) + I(Place^2) + I(Show^2),data = preakness)
+par(mfrow=c(1,2))
+plot(fitted(preak_poly), resid(preak_poly), col = "grey", pch = 20,
+xlab = "Fitted", ylab = "Residual",cex=2,
+main = "Residual plot")
+abline(h = 0, col = "darkorange", lwd = 2)
+qqnorm(resid(preak_poly), col = "grey",pch=20,cex=2)
+qqline(resid(preak_poly), col = "dodgerblue", lwd = 2)
+
+bptest(preak_poly)
+##[1]data:  preak_poly
+##[2]BP = 33.533, df = 10, p-value = 0.0002215
+
+shapiro.test(resid(preak_poly))
+##[1]data:  resid(preak_poly)
+##[2]W = 0.98274, p-value = 0.04008
+
+##BELMONT ANALYSIS
+
+#belmont model fit
+bel_fit = lm (final_place~ PP+Odds+Win+Place+Show, data = belmont)
+
+#checking model assumptions
+par(mfrow=c(1,2))
+plot(fitted(bel_fit), resid(bel_fit), col = "grey", pch = 20,
+xlab = "Fitted", ylab = "Residual",cex=2,
+main = "Residual plot")
+
+abline(h = 0, col = "darkorange", lwd = 2)
+qqnorm(resid(bel_fit), col = "grey",pch=20,cex=2)
+qqline(resid(bel_fit), col = "dodgerblue", lwd = 2)
+
+bptest(bel_fit)
+##[1]data:  bel_fit
+##[2]BP = 3.2305, df = 5, p-value = 0.6645
+
+shapiro.test(resid(bel_fit))
+##[1]data:  resid(bel_fit)
+##[2]W = 0.93814, p-value = 1.32e-06
+
+influ_idx = which(cooks.distance(bel_fit) > 4 / length(cooks.distance(bel_fit)))
+influ_idx
+##[1]1   6  10  25  32  63  64  99 100 102 103 127 
+##[2]1   6  10  25  32  63  64  99 100 102 103 127 
+#12 influencial points
+
+sum(abs(rstandard(bel_fit)[influ_idx]) > 2)
+##[1] 3
+#3 outliers
+
+#removing influential to see if the fit is better
+bel2 = belmont[-influ_idx,]
+bel_fit2 = lm (final_place~ PP+Odds+Win+Place+Show, data = bel2)
+par(mfrow=c(1,2))
+plot(fitted(bel_fit2), resid(bel_fit2), col = "grey", pch = 20,
+xlab = "Fitted", ylab = "Residual",cex=2,
+main = "Residual plot")
+abline(h = 0, col = "darkorange", lwd = 2)
+qqnorm(resid(bel_fit2), col = "grey",pch=20,cex=2)
+qqline(resid(bel_fit2), col = "dodgerblue", lwd = 2)
+
+bptest(bel_fit2)
+##[1]data:  preak_fit2
+##[2]BP = 11.692, df = 5, p-value = 0.03926
+
+shapiro.test(resid(bel_fit2))
+##[1]data:  resid(preak_fit2)
+##[2]W = 0.97591, p-value = 0.008393
+
+#using the Box-Cox method to determine the best transformation on the response variable y
+
+library(MASS)
+boxcox(bel_fit,lambda = seq(0.3, 0.7, by = 0.05))
+
+lambda = 0.41
+bel_boxcox = lm(((final_place^(lambda)-1)/(lambda))~ PP+Odds+Win+Place+Show, data = belmont)
+par(mfrow=c(1,2))
+plot(fitted(bel_boxcox), resid(bel_boxcox), col = "grey", pch = 20,
+xlab = "Fitted", ylab = "Residuals", main = "Residual Plot")
+abline(h = 0, col = "darkorange", lwd = 2)
+qqnorm(resid(bel_boxcox), col = "grey", pch = 20,cex = 2)
+qqline(resid(bel_boxcox), col = "dodgerblue", lwd = 2)
+
+bptest(bel_boxcox)
+##[1]data:  bel_boxcox
+##[2]BP = 5.8382, df = 5, p-value = 0.3223
+
+shapiro.test(resid(bel_boxcox))
+##[1]data:  resid(bel_boxcox)
+##[2]W = 0.9863, p-value = 0.1036
+
+#obtain the polynomial model
+bel_poly = lm(final_place~PP + Odds + Win + Place + Show + I(PP^2) + + I (Odds^2) + I(Win^2) + I(Place^2) + I(Show^2),data = belmont)
+par(mfrow=c(1,2))
+plot(fitted(bel_poly), resid(bel_poly), col = "grey", pch = 20,
+xlab = "Fitted", ylab = "Residual",cex=2,
+main = "Residual plot")
+abline(h = 0, col = "darkorange", lwd = 2)
+qqnorm(resid(bel_poly), col = "grey",pch=20,cex=2)
+qqline(resid(bel_poly), col = "dodgerblue", lwd = 2)
+
+bptest(bel_poly)
+##[1]data:  bel_poly
+##[2]BP = 19.086, df = 10, p-value = 0.03918
+
+shapiro.test(resid(bel_poly))
+##[1]data:  resid(bel_poly)
+##[2]W = 0.95947, p-value = 9.462e-05
+
+##BEST PREDICTOR
+
+#For Kentucky
+ken_null = lm(final_place ~ PP+Odds+Win+Place+Show,data = kentucky)
+ken_step_aic = step(ken_null,scope = final_place ~ PP+Odds+Win+Place+Show,direction = "both",trace=FALSE)
+ken_step_aic
+##[1](Intercept)         Odds        Place         Show  
+##[2]     9.4952       0.0793       0.1307      -0.9602  
+
+model_ken = lm(final_place ~ PP+Odds+Win+Place+Show, data = kentucky)
+library(faraway)
+vif(model_ken)
+##[1]    PP     Odds      Win    Place     Show 
+##[2]1.021860 1.063666 1.900333 4.968576 4.101350 
+
+ken_cyl = lm(final_place ~ PP, data = kentucky)
+1/(1-summary(ken_cyl)$r.squared)
+##[1]1.010105
+
+ken_cyl = lm(final_place ~ Odds, data = kentucky)
+1/(1-summary(ken_cyl)$r.squared)
+##[1]1.056439
+
+ken_cyl = lm(final_place ~ Win, data = kentucky)
+1/(1-summary(ken_cyl)$r.squared)
+##[1]1.061261
+
+ken_cyl = lm(final_place ~ Place, data = kentucky)
+1/(1-summary(ken_cyl)$r.squared)
+##[1]1.152655
+
+ken_cyl = lm(final_place ~ Show, data = kentucky)
+1/(1-summary(ken_cyl)$r.squared)
+##[1]1.344965
+
+#For Preakness
+preak_null = lm(final_place ~ PP+Odds+Win+Place+Show,data = preakness)
+preak_step_aic = step(preak_null,scope = final_place ~ PP+Odds+Win+Place+Show,direction = "both",trace=FALSE)
+preak_step_aic
+##[1](Intercept)         Odds          Win         Show  
+##[2]    5.74764      0.08079     -0.09227     -0.68613 
+
+model_preak = lm(final_place ~ PP+Odds+Win+Place+Show, data = preakness)
+library(faraway)
+vif(model_preak)
+##[1]     PP     Odds      Win    Place     Show 
+##[2]1.013002 1.039882 1.198119 2.522526 2.460618 
+
+preak_cyl = lm(final_place ~ PP, data = preakness)
+1/(1-summary(preak_cyl)$r.squared)
+##[1]1.006634
+
+preak_cyl = lm(final_place ~ Odds, data = preakness)
+1/(1-summary(preak_cyl)$r.squared)
+##[1]1.180716
+
+preak_cyl = lm(final_place ~ Win, data = preakness)
+1/(1-summary(preak_cyl)$r.squared)
+##[1]1.146457
+
+preak_cyl = lm(final_place ~ Place, data = preakness)
+1/(1-summary(preak_cyl)$r.squared)
+##[1]1.281744
+
+preak_cyl = lm(final_place ~ Show, data = preakness)
+1/(1-summary(preak_cyl)$r.squared)
+##[1]1.632098
+
+#For Belmont
+bel_null = lm(final_place ~ PP+Odds+Win+Place+Show,data = belmont)
+bel_step_aic = step(bel_null,scope = final_place ~ PP+Odds+Win+Place+Show,direction = "both",trace=FALSE)
+bel_step_aic
+##[1](Intercept)           PP         Odds        Place         Show  
+##[2]    4.68509      0.20770      0.07748     -0.06471     -0.58847  
+
+##Belmont 
+model_bel = lm(final_place ~ PP+Odds+Win+Place+Show, data = belmont)
+library(faraway)
+vif(model_bel)
+##[1]    PP     Odds      Win    Place     Show 
+##[2]1.047605 1.029832 1.836743 2.136636 1.853494 
+
+bel_cyl = lm(final_place ~ PP, data = belmont)
+1/(1-summary(bel_cyl)$r.squared)
+##[1]1.11079
+
+bel_cyl = lm(final_place ~ Odds, data = belmont)
+1/(1-summary(bel_cyl)$r.squared)
+##[1]1.101545
+
+bel_cyl = lm(final_place ~ Win, data = belmont)
+1/(1-summary(bel_cyl)$r.squared)
+##[1]1.135636
+
+bel_cyl = lm(final_place ~ Place, data = belmont)
+1/(1-summary(bel_cyl)$r.squared)
+##[1]1.282019
+
+bel_cyl = lm(final_place ~ Show, data = belmont)
+1/(1-summary(bel_cyl)$r.squared)
+##[1]1.640384
